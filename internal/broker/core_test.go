@@ -9,8 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arcana261/ubroker/internal/broker"
-	"github.com/arcana261/ubroker/pkg/ubroker"
+	ubroker "ubroker/api"
+	"ubroker/internal/broker"
+	"ubroker/pkg/ubroker"
+
 	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
@@ -18,17 +20,17 @@ import (
 )
 
 type CoreBrokerTestSuite struct {
-	suite.Suite
-
 	broker ubroker.Broker
 }
 
 func TestCoreBrokerTestSuite(t *testing.T) {
+	apis.ReQueueRequest
 	suite.Run(t, new(CoreBrokerTestSuite))
 }
 
 func BenchmarkPublish(b *testing.B) {
 	broker := broker.New(1 * time.Minute)
+	defer broker.Close()
 	s := assert.New(b)
 
 	b.ResetTimer()
@@ -40,7 +42,10 @@ func BenchmarkPublish(b *testing.B) {
 
 func BenchmarkDelivery(b *testing.B) {
 	broker := broker.New(1 * time.Minute)
+	defer broker.Close()
 	s := assert.New(b)
+
+	fmt.Println(b.N)
 
 	for i := 0; i < b.N; i++ {
 		s.Nil(broker.Publish(context.Background(), &ubroker.Message{}))
@@ -54,10 +59,13 @@ func BenchmarkDelivery(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		<-delivery
 	}
+
+	fmt.Println(b.N)
 }
 
 func BenchmarkAcknowledge(b *testing.B) {
 	broker := broker.New(1 * time.Minute)
+	defer broker.Close()
 	s := assert.New(b)
 
 	for i := 0; i < b.N; i++ {
