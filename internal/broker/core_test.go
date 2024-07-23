@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	ubroker "ubroker/api"
-	"ubroker/internal/broker"
 	"ubroker/pkg/ubroker"
+
+	"ubroker/internal/broker"
 
 	"github.com/pkg/errors"
 
@@ -20,11 +20,12 @@ import (
 )
 
 type CoreBrokerTestSuite struct {
+	suite.Suite
+
 	broker ubroker.Broker
 }
 
 func TestCoreBrokerTestSuite(t *testing.T) {
-	apis.ReQueueRequest
 	suite.Run(t, new(CoreBrokerTestSuite))
 }
 

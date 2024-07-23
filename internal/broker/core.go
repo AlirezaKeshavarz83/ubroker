@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arcana261/ubroker/pkg/ubroker"
+	"ubroker/pkg/ubroker"
 )
 
 // New creates a new instance of ubroker.Broker
@@ -14,7 +14,6 @@ import (
 // we requeue an unacknowledged/unrequeued message
 // automatically.
 func New(ttl time.Duration) ubroker.Broker {
-
 	return &core{
 		ch:      make(chan *ubroker.Delivery, 1000000000),
 		msgById: make(map[int32]*ubroker.Message),
@@ -107,10 +106,11 @@ func (c *core) Publish(ctx context.Context, message *ubroker.Message) error {
 	delv := &ubroker.Delivery{Id: rand.Int31(), Message: *message}
 
 	c.mu.Lock()
-	c.msgById[delv.Id] = message
-	c.mu.Unlock()
 
+	c.msgById[delv.Id] = message
 	c.ch <- delv
+
+	c.mu.Unlock()
 
 	go func(id int32) {
 		time.Sleep(c.ttl)
@@ -126,9 +126,11 @@ func (c *core) Publish(ctx context.Context, message *ubroker.Message) error {
 }
 
 func (c *core) Close() error {
-	c.isClosed = true
 
+	c.mu.Lock()
+	c.isClosed = true
 	close(c.ch)
+	c.mu.Unlock()
 
 	return nil
 }

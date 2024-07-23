@@ -4,11 +4,8 @@ import (
 	"context"
 	"io"
 	"net/http"
-
-	pb "ubroker/api"
 )
 
-/*
 type Delivery struct {
 	Id      int32
 	Message Message
@@ -16,7 +13,6 @@ type Delivery struct {
 type Message struct {
 	Body []byte
 }
-*/
 
 // Broker interface defines functionalities of a
 // message broker system.
@@ -45,7 +41,7 @@ type Broker interface {
 	//    returned
 	// 3. If broker is closed, `ErrClosed` is returned
 	// 4. should be thread-safe
-	Delivery(ctx context.Context) (<-chan *pb.Delivery, error)
+	Delivery(ctx context.Context) (<-chan *Delivery, error)
 
 	// Acknowledge is called by clients to declare that
 	// specified message id has been successfuly processed
@@ -83,7 +79,7 @@ type Broker interface {
 	//    returned
 	// 2. If broker is closed, `ErrClosed` is returned
 	// 3. should be thread-safe
-	Publish(ctx context.Context, message *pb.Message) error
+	Publish(ctx context.Context, message *Message) error
 }
 
 // HTTPServer defines an HTTP‌ API‌ server provider
