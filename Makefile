@@ -26,7 +26,7 @@ ubroker: $(SRCS) pkg/ubroker/ubroker.pb.go | dependencies generate ##‌ Compile
 generate: pkg/ubroker/ubroker.pb.go
 
 pkg/ubroker/ubroker.pb.go: api/ubroker.proto | .pre-check-go
-	$(PROTOC) $(PROTOC_OPTIONS) --go-grpc_out=:$(GOPATH)/src api/ubroker.proto
+	$(PROTOC) $(PROTOC_OPTIONS) --go_out=:$(GOPATH)/github/ --go-grpc_opt=require_unimplemented_servers=false --go-grpc_out=:$(GOPATH)/github/ api/ubroker.proto
 
 .pre-check-go:
 	go get -v github.com/golang/protobuf/protoc-gen-go

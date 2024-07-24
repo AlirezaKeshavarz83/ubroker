@@ -103,7 +103,7 @@ func (c *core) Publish(ctx context.Context, message *ubroker.Message) error {
 	default:
 	}
 
-	delv := &ubroker.Delivery{Id: rand.Int31(), Message: *message}
+	delv := &ubroker.Delivery{Id: rand.Int31(), Message: message}
 
 	c.mu.Lock()
 

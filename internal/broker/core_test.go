@@ -344,6 +344,7 @@ func (s *CoreBrokerTestSuite) TestPublishShouldFailOnCanceledContext() {
 
 func (s *CoreBrokerTestSuite) TestDataRace() {
 	var wg sync.WaitGroup
+	var misery sync.WaitGroup
 	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -407,10 +408,14 @@ func (s *CoreBrokerTestSuite) TestDataRace() {
 	}()
 
 	wg.Add(1)
+	misery.Add(1)
 	go func() {
 		defer wg.Done()
 
 		delivery, err := s.broker.Delivery(context.Background())
+
+		misery.Done()
+
 		s.Nil(err)
 		if err != nil {
 			return
@@ -439,6 +444,7 @@ func (s *CoreBrokerTestSuite) TestDataRace() {
 	}()
 
 	wg.Add(1)
+	misery.Wait()
 	go func() {
 		defer wg.Done()
 

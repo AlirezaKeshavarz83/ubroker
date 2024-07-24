@@ -6,14 +6,6 @@ import (
 	"net/http"
 )
 
-type Delivery struct {
-	Id      int32
-	Message Message
-}
-type Message struct {
-	Body []byte
-}
-
 // Broker interface defines functionalities of a
 // message broker system.
 //
