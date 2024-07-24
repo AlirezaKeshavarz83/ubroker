@@ -96,8 +96,12 @@ func (s *GRPCServerTestSuite) TestFetchShouldReturnTwoItems() {
 		s.Nil(err)
 		s.Equal("hello", string(result.Message.Body))
 
+		fmt.Println("checkpoint")
+
 		s.Nil(stream.Send(&ubroker.FetchRequest{}))
+		fmt.Println("checkpoint")
 		result, err = stream.Recv()
+		fmt.Println("checkpoint")
 		s.Nil(err)
 		s.Equal("salam", string(result.Message.Body))
 
