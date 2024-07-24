@@ -15,7 +15,7 @@ import (
 // automatically.
 func New(ttl time.Duration) ubroker.Broker {
 	return &core{
-		ch:      make(chan *ubroker.Delivery, 1000000000),
+		ch:      make(chan *ubroker.Delivery, 100000),
 		msgById: make(map[int32]*ubroker.Message),
 		ttl:     ttl,
 	}
@@ -30,24 +30,20 @@ type core struct {
 }
 
 func (c *core) Delivery(ctx context.Context) (<-chan *ubroker.Delivery, error) {
-	if c.isClosed {
-		return nil, ubroker.ErrClosed
-	}
-
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
 	}
 
+	if c.isClosed {
+		return nil, ubroker.ErrClosed
+	}
+
 	return c.ch, nil
 }
 
 func (c *core) Acknowledge(ctx context.Context, id int32) error {
-	if c.isClosed {
-		return ubroker.ErrClosed
-	}
-
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -56,6 +52,10 @@ func (c *core) Acknowledge(ctx context.Context, id int32) error {
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	if c.isClosed {
+		return ubroker.ErrClosed
+	}
 
 	_, ok := c.msgById[id]
 
@@ -68,10 +68,6 @@ func (c *core) Acknowledge(ctx context.Context, id int32) error {
 }
 
 func (c *core) ReQueue(ctx context.Context, id int32) error {
-	if c.isClosed {
-		return ubroker.ErrClosed
-	}
-
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -79,6 +75,11 @@ func (c *core) ReQueue(ctx context.Context, id int32) error {
 	}
 
 	c.mu.Lock()
+
+	if c.isClosed {
+		c.mu.Unlock()
+		return ubroker.ErrClosed
+	}
 
 	msg, ok := c.msgById[id]
 
@@ -87,25 +88,26 @@ func (c *core) ReQueue(ctx context.Context, id int32) error {
 		return ubroker.ErrInvalidID
 	}
 	delete(c.msgById, id)
-	c.mu.Unlock()
 
+	c.mu.Unlock()
 	return c.Publish(ctx, msg)
 }
 
 func (c *core) Publish(ctx context.Context, message *ubroker.Message) error {
-	if c.isClosed {
-		return ubroker.ErrClosed
-	}
-
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	delv := &ubroker.Delivery{Id: rand.Int31(), Message: message}
-
 	c.mu.Lock()
+
+	if c.isClosed {
+		c.mu.Unlock()
+		return ubroker.ErrClosed
+	}
+
+	delv := &ubroker.Delivery{Id: rand.Int31(), Message: message}
 
 	c.msgById[delv.Id] = message
 	c.ch <- delv
